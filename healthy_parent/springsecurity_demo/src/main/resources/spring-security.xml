@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:security="http://www.springframework.org/schema/security"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security.xsd">
+
+    <!--资源放行-->
+    <security:http pattern="/favicon.ico" security="none"></security:http>
+    <security:http pattern="/login.html" security="none"></security:http>
+
+    <!--对登录页面放行-->
+
+    <!--使用security自带的页面,是否使用security的表达式-->
+    <security:http auto-config="true" use-expressions="false">
+        <!--用户必须有ROLE_ADMIN的角色才可以访问-->
+        <security:intercept-url pattern="/**" access="ROLE_ADMIN"></security:intercept-url>
+        <!--配置自定义页面-->
+        <security:form-login login-page="/login.html"
+                             default-target-url="/success.html"
+                             login-processing-url="/login.do"
+                             authentication-failure-url="/error.html"
+                             username-parameter="username"
+                             password-parameter="password"
+        ></security:form-login>
+        <!--配置退出功能-->
+        <security:logout logout-url="/logout.do" logout-success-url="/login.html" invalidate-session="true"></security:logout>
+        <!--配置403页面-->
+        <security:access-denied-handler error-page="/403.html"></security:access-denied-handler>
+    <!--关闭跨站请求伪造-->
+        <security:csrf disabled="true"></security:csrf>
+    </security:http>
+
+
+
+
+
+<!--创建userDetailService接口实现类的对象-->
+    <bean id="userService" class="com.houxy.security.SpringSecurity"></bean>
+
+
+    <security:authentication-manager>
+        <security:authentication-provider user-service-ref="userService">
+            <!--配置加密工具类-->
+            <security:password-encoder ref="passwordEncoder"></security:password-encoder>
+        </security:authentication-provider>
+        <!--<security:authentication-provider>
+            <security:user-service>
+                <security:user name="admin" authorities="ROLE_ADMIN" password="{noop}admin"></security:user>
+            </security:user-service>
+        </security:authentication-provider>-->
+    </security:authentication-manager>
+    <!--创建加密工具类-->
+    <bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"></bean>
+
+
+    <!--可以使用注解控制权限-->
+    <security:global-method-security pre-post-annotations="enabled"></security:global-method-security>
+</beans>

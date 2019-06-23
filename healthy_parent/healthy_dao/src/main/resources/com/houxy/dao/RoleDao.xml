@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.houxy.dao.RoleDao">
+<resultMap id="baseMap" type="role">
+    <id column="id" property="id"></id>
+    <result column="name" property="name"></result>
+    <result column="keyword" property="keyword"></result>
+    <result column="description" property="description"></result>
+    <result column="name" property="name"></result>
+</resultMap>
+<resultMap id="findRoleListByUserIdMap" type="role" extends="baseMap">
+    <collection property="permissions"
+                column="id"
+                ofType="permission"
+                select="com.houxy.dao.PermissionDao.findPermissionByRoleId"></collection>
+</resultMap>
+<select id="findRoleListByUserId" parameterType="int" resultMap="findRoleListByUserIdMap">
+    select * from t_role where id in(select role_id from t_user_role where user_id = #{id})
+</select>
+</mapper>

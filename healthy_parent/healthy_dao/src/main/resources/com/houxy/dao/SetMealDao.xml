@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.houxy.dao.SetMealDao">
+    <insert id="add" parameterType="setmeal">
+        <selectKey resultType="int" order="AFTER" keyColumn="id" keyProperty="id">
+            select last_insert_id()
+        </selectKey>
+        insert into t_setmeal (`name`, `code`, `helpCode`, `sex`, `age`, `price`, `remark`, `attention`, `img`)
+        VALUES (#{ name} , #{code} , #{helpCode} , #{sex} , #{age} , #{price} , #{remark} , #{attention} , #{img})
+    </insert>
+
+    <insert id="insert">
+        INSERT INTO `t_setmeal_checkgroup` (`setmeal_id`, `checkgroup_id`) VALUES (#{param1}, #{param2})
+    </insert>
+
+    <select id="findByCondition" resultType="setmeal" parameterType="string">
+        select * from t_setmeal
+        <if test="queryString != null and queryString.length > 0">
+            where code = #{value} or name = #{value} or helpCode = #{value}
+        </if>
+    </select>
+    <select id="findAll" resultType="setmeal">
+        select * from t_setmeal;
+    </select>
+    <resultMap id="baseMap" type="setmeal">
+        <!--映射主键-->
+        <id column="id" property="id"></id>
+        <!--映射其他列-->
+        <result column="name" property="name"></result>
+        <result column="code" property="code"></result>
+        <result column="helpCode" property="helpCode"></result>
+        <result column="sex" property="sex"></result>
+        <result column="age" property="age"></result>
+        <result column="price" property="price"></result>
+        <result column="remark" property="remark"></result>
+        <result column="attention" property="attention"></result>
+        <result column="img" property="img"></result>
+    </resultMap>
+    <resultMap id="findByIdMap" type="setmeal" extends="baseMap">
+        <!--ofType在xml方式下可以省略,注解方式不可以省略-->
+        <collection property="checkGroups"
+                     ofType="checkgroup"
+                     column="id"
+                     select="com.houxy.dao.CheckGroupDao.findCheckGroupListBySetmealId"></collection>
+    </resultMap>
+    <select id="findById" parameterType="int" resultMap="findByIdMap">
+        select * from t_setmeal where id =#{id} ;
+    </select>
+
+    <select id="findSetmealCount" resultType="map">
+        select count(1) value,s.name
+            from t_order o, t_setmeal s
+            where o.setmeal_id = s.id
+         group by o.setmeal_id
+
+    </select>
+
+    <select id="findHotSetmeal" resultType="map">
+        select count(1) setmeal_count,s.name,
+		    count(1) /(select count(1) from t_order)  proportion
+            from t_order o, t_setmeal s
+            where o.setmeal_id = s.id
+         group by o.setmeal_id
+				 order by setmeal_count desc
+					limit 0,3
+    </select>
+</mapper>
